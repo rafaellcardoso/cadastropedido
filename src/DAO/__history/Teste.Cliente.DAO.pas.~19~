@@ -1,0 +1,180 @@
+unit Teste.Cliente.DAO;
+
+interface
+
+uses
+  System.SysUtils,
+  FireDAC.Comp.Client,
+  System.Generics.Collections,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, Data.DB,
+  FireDAC.Comp.DataSet,
+  Teste.Default.DAO,
+  Teste.Cliente.Entity;
+
+type
+  TClienteDAO = class(TDefaultDAO)
+  private
+    function PopularCliente(AQuery: TFDQuery): TCliente;
+  public
+    procedure Insert(Cliente: TCliente);
+    procedure Update(Cliente: TCliente);
+    procedure Delete(Id: Integer);
+
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TCliente>;
+    function FindById(const Id: Integer): TCliente;
+  end;
+
+implementation
+
+{ TClienteDAO }
+
+procedure TClienteDAO.Delete(Id: Integer);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    //lQry.SQL.Add(SQL_DELETE_CLIENTE);
+    lQry.Params[0].AsInteger := Id;
+    try
+      lQry.ExecSQL;
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao deletar cliente. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+function TClienteDAO.FindAll(const ASql: String;
+  const AParam: Boolean): TObjectList<TCliente>;
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    Result := TObjectList<TCliente>.Create();
+    lQry.Connection := GetConnection;
+    lQry.Close;
+    lQry.SQL.Clear;
+    //lQry.SQL.Add(SQL_CLIENTE);
+    if (AParam) then
+      lQry.SQL.Add(ASql);
+    lQry.Open;
+    if not (lQry.IsEmpty) then
+    begin
+      lQry.First;
+      while not lQry.Eof do
+      begin
+          Result.Add(PopularCliente(lQry));
+        lQry.Next;
+      end;
+    end;
+  finally
+    lQry.Free;
+  end;
+end;
+
+function TClienteDAO.FindById(const Id: Integer): TCliente;
+var
+  lQry: TFDQuery;
+begin
+  try
+    Result := nil;
+    lQry := GetQuery;
+    lQry.Close;
+    lQry.SQL.Clear;
+    //lQry.SQL.Add(SQL_CLIENTE);
+    lQry.SQL.Add('AND IDITEM = :ID ');
+    lQry.Params[0].AsInteger := Id;
+    lQry.Open;
+    if not (lQry.IsEmpty) then
+      Result := PopularCliente(lQry);
+  finally
+    lQry.Free;
+  end;
+end;
+
+procedure TClienteDAO.Insert(Cliente: TCliente);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    //lQry.SQL.Add(SQL_INSERT_CLIENTE);
+    lQry.Params[0].AsString := Cliente.Nome;
+    lQry.Params[1].AsString := Cliente.Cidade;
+    lQry.Params[2].AsString := Cliente.UF;
+    try
+      lQry.ExecSQL;
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao cadastrar cliente. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+function TClienteDAO.PopularCliente(AQuery: TFDQuery): TCliente;
+begin
+  Result        := TCliente.Create;
+  Result.Id     := AQuery.Fields[0].AsInteger;
+  Result.Nome   := AQuery.Fields[1].AsString;
+  Result.Cidade := AQuery.Fields[2].AsString;
+  Result.UF     := AQuery.Fields[3].AsString;
+end;
+
+procedure TClienteDAO.Update(Cliente: TCliente);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    //lQry.SQL.Add(SQL_UPDATE_PRODUTO);
+    lQry.Params[0].AsString  := Cliente.Nome;
+    lQry.Params[1].AsString  := Cliente.Cidade;
+    lQry.Params[2].AsString  := Cliente.UF;
+    lQry.Params[3].AsInteger := Cliente.Id;
+    try
+      lQry.ExecSQL;
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao alterar produto. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+end.

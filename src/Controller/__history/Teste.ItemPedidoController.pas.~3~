@@ -1,0 +1,18 @@
+unit Teste.ItemPedidoController;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.ItemPedido.DAO,
+  Teste.ItemPedido.Entity;
+
+type
+  TItemPedidoController = class(TDefaultController)
+
+  end;
+
+implementation
+
+end.

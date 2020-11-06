@@ -1,0 +1,199 @@
+unit Teste.Produto.DAO;
+
+interface
+
+uses
+  System.SysUtils,
+  FireDAC.Comp.Client,
+  System.Generics.Collections,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, Data.DB,
+  FireDAC.Comp.DataSet,
+  Teste.Default.DAO,
+  Teste.Produto.Entity;
+
+type
+  TProdutoDAO = class(TDefaultDAO)
+  private
+    function PopularProduto(AQuery: TFDQuery): TProduto;
+  public
+    procedure Insert(Produto: TProduto);
+    procedure Update(Produto: TProduto);
+    procedure Delete(Id: Integer);
+
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TProduto>;
+    function FindById(const Id: Integer): TProduto;
+    function GetDescricao(Id: Integer): String;
+  end;
+
+implementation
+
+{ TProdutoDAO }
+
+uses
+  Teste.Produto.DAO.SQL;
+
+procedure TProdutoDAO.Delete(Id: Integer);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_DELETE_PRODUTO);
+    lQry.Params[0].AsInteger := Id;
+    try
+      lQry.ExecSQL;
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao deletar produto. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+function TProdutoDAO.FindAll(const ASql: String;
+  const AParam: Boolean): TObjectList<TProduto>;
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    Result := TObjectList<TProduto>.Create();
+    lQry.Connection := GetConnection;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_PRODUTO);
+    if (AParam) then
+      lQry.SQL.Add(ASql);
+    lQry.Open;
+    if not (lQry.IsEmpty) then
+    begin
+      lQry.First;
+      while not lQry.Eof do
+      begin
+          Result.Add(PopularProduto(lQry));
+        lQry.Next;
+      end;
+    end;
+  finally
+    lQry.Free;
+  end;
+end;
+
+function TProdutoDAO.FindById(const Id: Integer): TProduto;
+var
+  lQry: TFDQuery;
+begin
+  try
+    Result := nil;
+    lQry := GetQuery;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_PRODUTO);
+    lQry.SQL.Add('AND IDITEM = :ID ');
+    lQry.Params[0].AsInteger := Id;
+    lQry.Open;
+    if not (lQry.IsEmpty) then
+      Result := PopularProduto(lQry);
+  finally
+    lQry.Free;
+  end;
+end;
+
+function TProdutoDAO.GetDescricao(Id: Integer): String;
+var
+  lQry: TFDQuery;
+begin
+  try
+    Result := '';
+    lQry := GetQuery;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_PRODUTO);
+    lQry.SQL.Add('AND IDITEM = :ID ');
+    lQry.Params[0].AsInteger := Id;
+    lQry.Open;
+    if not (lQry.IsEmpty) then
+      Result := lQry.Fields[1].AsString;
+  finally
+    lQry.Free;
+  end;
+end;
+
+procedure TProdutoDAO.Insert(Produto: TProduto);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_INSERT_PRODUTO);
+    lQry.Params[0].AsString := Produto.Descricao;
+    lQry.Params[1].AsFloat  := Produto.PrecoVenda;
+    try
+      lQry.ExecSQL;
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao cadastrar produto. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+function TProdutoDAO.PopularProduto(AQuery: TFDQuery): TProduto;
+begin
+  Result           := TProduto.Create;
+  Result.Id        := AQuery.Fields[0].AsInteger;
+  Result.Descricao := AQuery.Fields[1].AsString;
+end;
+
+procedure TProdutoDAO.Update(Produto: TProduto);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_UPDATE_PRODUTO);
+    lQry.Params[0].AsString  := Produto.Descricao;
+    lQry.Params[1].AsInteger := Produto.Id;
+    try
+      lQry.ExecSQL;
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao alterar produto. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+end.

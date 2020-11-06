@@ -1,0 +1,30 @@
+unit Teste.Produto.Controller;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.Produto.DAO,
+  Teste.Produto.Entity;
+
+type
+  TProdutoController = class(TDefaultController)
+  private
+    FProdutoDAO: TProdutoDAO;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Insert(AreaInteresse: TAreaInteresse); overload;
+    procedure Update(AreaInteresse: TAreaInteresse); overload;
+    procedure Delete(AId: Integer);
+
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TAreaInteresse>;
+    function FindByName(const AValue: string): TObjectList<TAreaInteresse>;
+    function FindById(const AId: Integer): TAreaInteresse;
+  end;
+
+implementation
+
+end.

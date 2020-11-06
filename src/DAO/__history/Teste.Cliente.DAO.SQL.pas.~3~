@@ -1,0 +1,15 @@
+unit Teste.Cliente.DAO.SQL;
+
+interface
+
+const
+
+  SQL_DELETE_PRODUTO = 'DELETE FROM clientes WHERE codigo = :ID';
+
+  SQL_CLIENTE =  'SELECT codigo, nome, cidade, uf '+
+                 'FROM clientes '+
+                 'WHERE 1 = 1';
+
+implementation
+
+end.

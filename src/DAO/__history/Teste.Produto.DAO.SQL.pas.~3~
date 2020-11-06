@@ -1,0 +1,15 @@
+unit Teste.Produto.DAO.SQL;
+
+interface
+
+const
+  SQL_INSERT_PRODUTO =
+    'INSERT INTO item (descitem) '+
+    'VALUES (:descricao)';
+
+  SQL_PRODUTO = 'SELECT iditem, descitem '+
+                'FROM item ';
+
+implementation
+
+end.

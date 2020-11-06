@@ -1,0 +1,25 @@
+unit Teste.Pedido.DAO.SQL;
+
+interface
+
+const
+  SQL_INSERT_PEDIDO =
+    'INSERT INTO pedidocab (data_emissao, codigo_cliente, valor_total) '+
+    'VALUES (:data_emissao, :codigo_cliente, :valor_total)';
+
+  SQL_UPDATE_PEDIDO =
+    'UPDATE pedidocab SET codigo_cliente = :codigo_cliente, valor_total = :valor_total WHERE numero_pedido = :ID';
+
+  SQL_DELETE_PEDIDO = 'DELETE FROM pedidocab WHERE numero_pedido = :ID';
+
+  SQL_DELETE_ITPEDIDO = 'DELETE FROM pedidoitens WHERE numero_pedido = :ID';
+
+  SQL_PEDIDO = 'SELECT numero_pedido, data_emissao, codigo_cliente, valor_total '+
+               'FROM pedidos '+
+               'WHERE 1 = 1 ';
+
+  SQL_MAX_PEDIDO = 'SELECT MAX(numero_pedido) FROM pedidos';
+
+implementation
+
+end.

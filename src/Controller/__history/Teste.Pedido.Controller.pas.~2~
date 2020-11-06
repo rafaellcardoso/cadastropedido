@@ -1,0 +1,13 @@
+unit Teste.Pedido.Controller;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.Pedido.DAO,
+  Teste.Pedido.Entity;
+
+implementation
+
+end.

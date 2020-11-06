@@ -1,0 +1,16 @@
+unit Teste.ItemPedido.DAO.SQL;
+
+interface
+
+const
+  SQL_ITEMPEDIDO =
+    'SELECT idpedidoitem, idpedidocab, iditem, quantidade, valorunit, valortotal '+
+    'FROM pedidoitem '+
+    'WHERE idpedidocab = :idpedido';
+
+  SQL_INSERT_ITEMPED = 'INSERT INTO pedidoitem (idpedidocab, iditem, quantidade, valorunit, valortotal) '+
+                       'VALUES (:idpedidocab, :iditem, :quantidade, :valorunit, :valortotal)';
+
+implementation
+
+end.

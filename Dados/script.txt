@@ -1,0 +1,56 @@
+create table produtos(
+  codigo integer not null AUTO_INCREMENT,
+  descricao varchar(100),
+  preco_venda double,
+  constraint pk_produtos primary key (codigo)
+);
+create table clientes(
+  codigo integer not null AUTO_INCREMENT,
+  nome varchar(100),
+  cidade varchar(100),
+  uf varchar(50),
+  constraint pk_clientes primary key (codigo)
+);
+create table pedidos(
+  numero_pedido integer not null AUTO_INCREMENT, 
+  data_emissao date,
+  codigo_cliente integer not null,
+  valor_total double,
+  constraint pk_pedidos primary key(numero_pedido),
+  constraint fk_cliente foreign key (codigo_cliente) references clientes(codigo)
+);
+
+create table pedido_itens(
+  codigo integer not null AUTO_INCREMENT, 
+  numero_pedido integer not null,
+  codigo_produto integer not null,
+  quantidade integer,
+  valor_unitario double,
+  valor_total double,
+  constraint pk_itenspedido primary key (codigo),
+  constraint fk_pedido foreign key(numero_pedido) references pedidos(numero_pedido) on delete cascade,
+  constraint fk_produto foreign key(codigo_produto) references produtos(codigo)
+);
+
+insert into clientes (nome, cidade, uf) values
+('CLIENTE1', 'TUBARAO', 'SC'),
+('CLIENTE2', 'TUBARAO', 'SC'),
+('CLIENTE3', 'TUBARAO', 'SC'),
+('CLIENTE3', 'TUBARAO', 'SC'),
+('CLIENTE4', 'TUBARAO', 'SC'),
+('CLIENTE5', 'TUBARAO', 'SC'),
+('CLIENTE6', 'TUBARAO', 'SC'),
+('CLIENTE7', 'TUBARAO', 'SC'),
+('CLIENTE8', 'TUBARAO', 'SC'),
+('CLIENTE9', 'TUBARAO', 'SC'),
+('CLIENTE10', 'TUBARAO', 'SC'),
+('CLIENTE11', 'TUBARAO', 'SC'),
+('CLIENTE12', 'TUBARAO', 'SC'),
+('CLIENTE13', 'TUBARAO', 'SC'),
+('CLIENTE14', 'TUBARAO', 'SC'),
+('CLIENTE15', 'TUBARAO', 'SC'),
+('CLIENTE16', 'TUBARAO', 'SC'),
+('CLIENTE17', 'TUBARAO', 'SC'),
+('CLIENTE18', 'TUBARAO', 'SC'),
+('CLIENTE19', 'TUBARAO', 'SC'),
+('CLIENTE20', 'TUBARAO', 'SC');

@@ -1,0 +1,30 @@
+unit Teste.Cliente.Facade;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Cliente.Entity,
+  Teste.Cliente.Controller;
+
+type
+  TClienteFacade = class
+  private
+    FClienteController: TClienteController;
+
+    class var FInstancia: TClienteFacade;
+  public
+    class function GetInstancia: TClienteFacade;
+
+    procedure Insert(Cliente: TCliente);
+    procedure Update(Cliente: TCliente);
+    procedure Delete(Id: Integer);
+
+    function FindById(const AId: Integer): TCliente;
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TCliente>;
+  end;
+
+
+implementation
+
+end.

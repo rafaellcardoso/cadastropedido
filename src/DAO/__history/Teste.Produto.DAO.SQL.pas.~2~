@@ -1,0 +1,15 @@
+unit Teste.Produto.DAO.SQL;
+
+interface
+
+const
+  SQL_INSERT_PRODUTO =
+    'INSERT INTO produto (descricao, preco_venda) '+
+    'VALUES (:descricao, :preco_venda)';
+
+  SQL_PRODUTO = 'SELECT codigo, descricao, preco_venda '+
+                'FROM produto ';
+
+implementation
+
+end.

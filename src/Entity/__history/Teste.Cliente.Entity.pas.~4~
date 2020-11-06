@@ -1,0 +1,18 @@
+unit Teste.Cliente.Entity;
+
+interface
+
+type
+  TCliente = class
+  private
+  public
+    property Id: Integer read FId write SetId;
+    property Nome: String read FNome write SetNome;
+    property Cidade: String read FCidade write SetCidade;
+    property UF: String read FUF write SetUF;
+  end;
+
+
+implementation
+
+end.

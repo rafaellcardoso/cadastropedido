@@ -1,0 +1,30 @@
+unit Teste.Cliente.Controller;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.Cliente.DAO,
+  Teste.Cliente.Entity;
+
+type
+  TClienteController = class(TDefaultController)
+  private
+    FClienteDAO: TClienteDAO;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Insert(Produto: TCliente); overload;
+    procedure Update(Produto: TCliente); overload;
+    procedure Delete(AId: Integer);
+
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TCliente>;
+    function FindById(const AId: Integer): TCliente;
+  end;
+
+
+implementation
+
+end.

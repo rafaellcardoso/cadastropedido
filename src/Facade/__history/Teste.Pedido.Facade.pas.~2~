@@ -1,0 +1,18 @@
+unit Teste.Pedido.Facade;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Pedido.Entity,
+  Teste.Pedido.Controller;
+
+type
+  TPedidoFacade = class
+
+  end;
+
+
+implementation
+
+end.

@@ -1,0 +1,69 @@
+unit Teste.FactoryFB.DAO;
+
+interface
+
+uses
+  FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB,
+  FireDAC.Phys.FBDef, FireDAC.VCLUI.Wait, Data.DB, FireDAC.Comp.Client;
+
+type
+  TFactoryFB = class
+  private
+    class var FConnection: TFDConnection;
+  protected
+    function GetQuery: TFDQuery;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure CancelTransaction;
+    procedure ConfirmTransaction;
+    procedure StartTransaction;
+
+    function GetConnection: TFDConnection;
+  end;
+
+
+implementation
+
+{ TFactoryFB }
+
+procedure TFactoryFB.CancelTransaction;
+begin
+
+end;
+
+procedure TFactoryFB.ConfirmTransaction;
+begin
+
+end;
+
+constructor TFactoryFB.Create;
+begin
+
+end;
+
+destructor TFactoryFB.Destroy;
+begin
+
+  inherited;
+end;
+
+function TFactoryFB.GetConnection: TFDConnection;
+begin
+
+end;
+
+function TFactoryFB.GetQuery: TFDQuery;
+begin
+
+end;
+
+procedure TFactoryFB.StartTransaction;
+begin
+
+end;
+
+end.

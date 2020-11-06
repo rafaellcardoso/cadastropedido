@@ -1,0 +1,40 @@
+unit Teste.Pedido.View;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Vcl.StdCtrls, Vcl.Grids,
+  Vcl.DBGrids, Vcl.ExtCtrls, Vcl.Buttons, Vcl.ComCtrls;
+
+type
+  TCadastroPedidoForm = class(TForm)
+    TopPanel: TPanel;
+    TopGroupBox: TGroupBox;
+    EdData: TEdit;
+    lblData: TLabel;
+    EdID: TEdit;
+    lblID: TLabel;
+    ClienteGroupBox: TGroupBox;
+    EdIDCliente: TEdit;
+    btnConsCli: TSpeedButton;
+    EdCliente: TEdit;
+    GroupBox1: TGroupBox;
+    BottomPanel: TPanel;
+    StatusBar1: TStatusBar;
+    lblDesTotal: TLabel;
+    lblTotalPed: TLabel;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  CadastroPedidoForm: TCadastroPedidoForm;
+
+implementation
+
+{$R *.dfm}
+
+end.

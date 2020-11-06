@@ -1,0 +1,13 @@
+unit Teste.ItemPedido.DAO.SQL;
+
+interface
+
+const
+  SQL_ITEMPEDIDO =
+    'SELECT idpedidoitem, idpedidocab, iditem, quantidade, valorunit, valortotal '+
+    'FROM pedidoitem '+
+    'WHERE idpedidocab = :idpedido';
+
+implementation
+
+end.

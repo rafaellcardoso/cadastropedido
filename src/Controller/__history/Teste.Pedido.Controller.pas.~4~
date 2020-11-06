@@ -1,0 +1,31 @@
+unit Teste.Pedido.Controller;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.Pedido.DAO,
+  Teste.Pedido.Entity;
+
+type
+  TPedidoController = class
+  private
+    FPedidoDAO: TPedidoDAO;
+  public
+    constructor Create;
+    destructor Destroy; override;
+
+    procedure Insert(Pedido: TPedido); overload;
+    procedure Update(Pedido: TPedido); overload;
+    procedure Delete(AId: Integer);
+
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TPedido>;
+    function FindByName(const AValue: string): TObjectList<TPedido>;
+    function FindById(const AId: Integer): TPedido;
+    function GetDescricao(Id: Integer): String;
+  end;
+
+implementation
+
+end.

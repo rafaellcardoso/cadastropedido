@@ -1,0 +1,19 @@
+unit Teste.Cliente.Controller;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.Cliente.DAO,
+  Teste.Cliente.Entity;
+
+type
+  TClienteController = class(TDefaultController)
+
+  end;
+
+
+implementation
+
+end.

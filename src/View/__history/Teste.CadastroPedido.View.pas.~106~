@@ -1,0 +1,429 @@
+unit Teste.CadastroPedido.View;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Teste.CadastroPadrao.View, Data.DB,
+  Vcl.Grids, Vcl.DBGrids, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls,
+  Datasnap.DBClient, Teste.Produto.Entity, Teste.Pedido.Entity, System.Generics.Collections,
+  Teste.ItemPedido.Entity, Teste.Cliente.Entity;
+
+type
+  TCadastroPedidoForm = class(TCadastroPadraoForm)
+    EdData: TEdit;
+    lblData: TLabel;
+    EdCliente: TEdit;
+    lblCliente: TLabel;
+    GroupBox1: TGroupBox;
+    lblProduto: TLabel;
+    btnConsProduto: TSpeedButton;
+    Label5: TLabel;
+    Label4: TLabel;
+    Label2: TLabel;
+    btnIncluirIt: TSpeedButton;
+    btnCancelarIt: TSpeedButton;
+    Grid: TDBGrid;
+    EdIDProduto: TEdit;
+    EdProduto: TEdit;
+    EdVlrUni: TEdit;
+    EdQtde: TEdit;
+    EdVlrTotal: TEdit;
+    BottomPanel: TPanel;
+    lblDesTotal: TLabel;
+    lblTotalPed: TLabel;
+    cdsItem: TClientDataSet;
+    cdsItemITEM: TIntegerField;
+    cdsItemID_PRODUTO: TIntegerField;
+    cdsItemDE_PRODUTO: TStringField;
+    cdsItemQTDE: TIntegerField;
+    cdsItemVLR_UNITARIO: TCurrencyField;
+    cdsItemVLR_TOTAL: TCurrencyField;
+    ds: TDataSource;
+    lblNumeroPedido: TLabel;
+    EdNumeroPedido: TEdit;
+    ProximoButton: TButton;
+    AnteriorButton: TButton;
+    edIdCliente: TEdit;
+    btnConsCliente: TSpeedButton;
+    procedure btnConsProdutoClick(Sender: TObject);
+    procedure btnIncluirItClick(Sender: TObject);
+    procedure btnIncluirClick(Sender: TObject);
+    procedure btnConsultarClick(Sender: TObject);
+    procedure btnSalvarClick(Sender: TObject);
+    procedure EdQtdeChange(Sender: TObject);
+    procedure EdVlrUniExit(Sender: TObject);
+    procedure btnCancelarItClick(Sender: TObject);
+    procedure GridDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure btnExcluirClick(Sender: TObject);
+    procedure ProximoButtonClick(Sender: TObject);
+    procedure AnteriorButtonClick(Sender: TObject);
+    procedure btnCancelarClick(Sender: TObject);
+    procedure btnConsClienteClick(Sender: TObject);
+    procedure btnAlterarClick(Sender: TObject);
+    procedure GridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+  private
+    { Private declarations }
+    AlterarItem: Boolean;
+    ItemCount: Integer;
+    TotalPedido: Currency;
+    ListItPed: TObjectList<TItemPedido>;
+
+    function PopularItemPedido: TItemPedido;
+
+    procedure AddItem;
+    procedure AtualizarItem;
+    procedure AtualizarTotalPedido(AValue: Currency);
+    procedure LimparCamposProduto;
+    procedure LimparCDS;
+    procedure PopularCamposCliente(Cliente: TCliente);
+    procedure PopularCamposPedido(Pedido: TPedido);
+    procedure PopularCamposProduto(Produto: TProduto; Qtd: Integer = 0);
+    procedure PopularCdsItem;
+  public
+    { Public declarations }
+  end;
+
+var
+  CadastroPedidoForm: TCadastroPedidoForm;
+
+implementation
+
+uses
+  Teste.Consulta.View,
+  Teste.ConsultaPedido.View,
+  Teste.Produto.Facade,
+  Teste.Pedido.Facade,
+  Teste.ItemPedido.Facade,
+  Teste.Cliente.Facade;
+
+{$R *.dfm}
+
+{ TCadastroPadraoForm1 }
+
+procedure TCadastroPedidoForm.AddItem;
+begin
+  if not(Length(Trim(EdIDProduto.Text)) > 0) then
+    raise Exception.Create('Informe um produto para prosseguir!');
+  if not(StrToIntDef(EdQtde.Text,0) > 0) then
+    raise Exception.Create('Informe uma quantidade de produtos para prosseguir!');
+
+  if (cdsItem.Active) then
+    cdsItem.Open;
+
+  cdsItem.Append;
+  cdsItem.Fields[0].AsInteger  := ItemCount;
+  cdsItem.Fields[1].AsInteger  := StrToInt(EdIDProduto.Text);
+  cdsItem.Fields[2].AsString   := EdProduto.Text;
+  cdsItem.Fields[3].AsInteger  := StrToInt(EdQtde.Text);
+  cdsItem.Fields[4].AsCurrency := StrToCurr(EdVlrUni.Text);
+  cdsItem.Fields[5].AsCurrency := (StrToCurr(EdVlrUni.Text) * StrToInt(EdQtde.Text) );
+  AtualizarTotalPedido(cdsItemVLR_TOTAL.AsCurrency);
+  cdsItem.Post;
+  Inc(ItemCount);
+end;
+
+procedure TCadastroPedidoForm.AnteriorButtonClick(Sender: TObject);
+begin
+  inherited;
+  cdsItem.Prior;
+end;
+
+procedure TCadastroPedidoForm.AtualizarItem;
+begin
+  cdsItem.Edit;
+  cdsItem.Fields[3].AsInteger  := StrToInt(EdQtde.Text);
+  cdsItem.Fields[4].AsCurrency := StrToCurr(EdVlrUni.Text);
+  AtualizarTotalPedido(cdsItemVLR_TOTAL.AsCurrency);
+  cdsItem.Post;
+end;
+
+procedure TCadastroPedidoForm.AtualizarTotalPedido(AValue: Currency);
+begin
+  TotalPedido := TotalPedido + AValue;
+  lblTotalPed.Caption := FormatFloat('###,##0.00', TotalPedido);
+  Application.ProcessMessages;
+end;
+
+procedure TCadastroPedidoForm.btnAlterarClick(Sender: TObject);
+begin
+  inherited;
+  AlterarItem := False;
+end;
+
+procedure TCadastroPedidoForm.btnCancelarClick(Sender: TObject);
+begin
+  inherited;
+  LimparCDS;
+end;
+
+procedure TCadastroPedidoForm.btnCancelarItClick(Sender: TObject);
+begin
+  inherited;
+  LimparCamposProduto;
+end;
+
+procedure TCadastroPedidoForm.btnConsClienteClick(Sender: TObject);
+begin
+  inherited;
+  try
+    PesquisaForm := TPesquisaForm.Create(Application);
+    PesquisaForm.Exibir(1, 'CLIENTES', 'ID', 'NOME');
+    //
+    PesquisaForm.ShowModal;
+    if PesquisaForm.ID > 0 then
+      PopularCamposCliente(TClienteFacade.GetInstancia.FindById(PesquisaForm.ID));
+  finally
+    PesquisaForm.Release;
+  end;
+end;
+
+procedure TCadastroPedidoForm.btnConsProdutoClick(Sender: TObject);
+begin
+  inherited;
+  try
+    PesquisaForm := TPesquisaForm.Create(Application);
+    PesquisaForm.Exibir(1, 'ITEM', 'IDITEM', 'DESCITEM');
+    //
+    PesquisaForm.ShowModal;
+    if PesquisaForm.ID > 0 then
+      PopularCamposProduto(TProdutoFacade.GetInstancia.FindById(PesquisaForm.ID));
+  finally
+    PesquisaForm.Release;
+  end;
+end;
+
+procedure TCadastroPedidoForm.btnConsultarClick(Sender: TObject);
+begin
+  inherited;
+  btnConsProduto.Enabled := False;
+  btnConsCliente.Enabled := False;
+  btnIncluirIt.Enabled   := False;
+  btnCancelarIt.Enabled  := False;
+  LimparCDS;
+  TotalPedido := 0;
+  AtualizarTotalPedido(TotalPedido);
+
+  ConsultaPedidoForm := TConsultaPedidoForm.Create(Application);
+  try
+    ConsultaPedidoForm.ShowModal;
+    if ConsultaPedidoForm.ID > 0 then
+      PopularCamposPedido(TPedidoFacade.GetInstancia.FindById(ConsultaPedidoForm.ID));
+  finally
+    ConsultaPedidoForm.Release;
+  end;
+end;
+
+procedure TCadastroPedidoForm.btnExcluirClick(Sender: TObject);
+begin
+  if Application.messageBox('Deseja excluir esse pedido?',
+                            'Confirmação',
+                            mb_YesNo+mb_IconInformation+mb_DefButton2) = IDYES then
+  begin
+    TPedidoFacade.GetInstancia.Delete(StrToInt(EdID.Text));
+    inherited;
+    LimparCDS;
+  end;
+end;
+
+procedure TCadastroPedidoForm.btnIncluirClick(Sender: TObject);
+begin
+  inherited;
+  LimparCDS;
+  btnConsProduto.Enabled := True;
+  btnConsCliente.Enabled := True;
+  btnIncluirIt.Enabled   := True;
+  btnCancelarIt.Enabled  := True;
+  AlterarItem := False;
+  ItemCount   := 1;
+  TotalPedido := 0;
+  AtualizarTotalPedido(TotalPedido);
+  EdData.Text := DateToStr(Now);
+  EdNumeroPedido.SetFocus;
+end;
+
+procedure TCadastroPedidoForm.btnIncluirItClick(Sender: TObject);
+begin
+  inherited;
+
+  if AlterarItem then
+    AtualizarItem
+  else
+    AddItem;
+
+  LimparCamposProduto;
+  EdIDProduto.SetFocus;
+end;
+
+procedure TCadastroPedidoForm.btnSalvarClick(Sender: TObject);
+var
+  Pedido: TPedido;
+begin
+  if not(Length(Trim(EdCliente.Text)) > 0) then
+    raise Exception.Create('Campo clinete tem preenchimento obrigatório!');
+
+  Pedido := TPedido.Create;
+  try
+    Pedido.Data         := StrToDate(EdData.Text);
+    Pedido.IdCliente    := StrToInt(edIdCliente.Text);
+    Pedido.Cliente      := EdCliente.Text;
+    Pedido.NumeroPedido := StrToInt(EdNumeroPedido.Text);
+    cdsItem.DisableControls;
+    cdsItem.First;
+    while not cdsItem.Eof do
+    begin
+      Pedido.ItemList.Add(PopularItemPedido);
+      cdsItem.Next;
+    end;
+    TPedidoFacade.GetInstancia.Insert(Pedido);
+    cdsItem.EnableControls;
+
+    inherited;
+  finally
+    LimparCDS;
+    btnConsProduto.Enabled := False;
+    btnConsCliente.Enabled := False;
+    btnIncluirIt.Enabled   := False;
+    btnCancelarIt.Enabled  := False;
+    Pedido.Free;
+  end;
+end;
+
+procedure TCadastroPedidoForm.EdQtdeChange(Sender: TObject);
+begin
+  inherited;
+  EdVlrTotal.Text := FormatFloat('##,###,##0.00', ( StrToCurrDef(EdVlrUni.Text,0)* StrToIntDef(EdQtde.Text,0) ) );
+end;
+
+procedure TCadastroPedidoForm.EdVlrUniExit(Sender: TObject);
+begin
+  inherited;
+
+  EdVlrUni.Text := FormatFloat('##,###,##0.00', ( StrToCurrDef(EdVlrUni.Text,0) ) );
+
+end;
+
+procedure TCadastroPedidoForm.GridDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+  inherited;
+  if odd(ds.DataSet.RecNo) then
+    grid.Canvas.Brush.Color:= clGradientInactiveCaption
+  else
+    grid.Canvas.Brush.Color:= clWindow;//clCream;
+
+  TDbGrid(Sender).Canvas.font.Color:= clBlack;
+  if gdSelected in State then
+  with (Sender as TDBGrid).Canvas do
+  begin
+    Brush.Color := clHotLight;//$004080FF;
+    FillRect(Rect);
+    Font.Color := clWindow;
+    Font.Style := [fsbold]
+  end;
+  TDbGrid(Sender).DefaultDrawDataCell(Rect, TDbGrid(Sender).columns[datacol].field, State);
+end;
+
+procedure TCadastroPedidoForm.GridKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+  Produto: TProduto;
+begin
+  inherited;
+  if Key = VK_RETURN then
+  begin
+    AlterarItem := True;
+    Produto := TProduto.Create;
+    try
+      Produto.Id         := cdsItem.FieldByName('ID_PRODUTO').AsInteger;
+      Produto.Descricao  := cdsItem.FieldByName('DE_PRODUTO').AsString;
+      Produto.PrecoVenda := cdsItem.FieldByName('VLR_UNITARIO').AsFloat;
+      PopularCamposProduto(Produto, cdsItem.FieldByName('QTDE').AsInteger);
+    finally
+      Produto.Free;
+    end;
+  end;
+end;
+
+procedure TCadastroPedidoForm.LimparCamposProduto;
+begin
+  EdIDProduto.Clear;
+  EdProduto.Clear;
+  EdVlrUni.Clear;
+  EdQtde.Clear;
+  EdVlrTotal.Clear;
+end;
+
+procedure TCadastroPedidoForm.LimparCDS;
+begin
+  while not (cdsItem.IsEmpty) do cdsItem.Delete;
+end;
+
+procedure TCadastroPedidoForm.PopularCamposCliente(Cliente: TCliente);
+begin
+  edIdCliente.Text := IntToStr(Cliente.Id);
+  EdCliente.Text   := Cliente.Nome;
+end;
+
+procedure TCadastroPedidoForm.PopularCamposPedido(Pedido: TPedido);
+begin
+  EdID.Text           := IntToStr(Pedido.Id);
+  EdData.Text         := DateToStr(Pedido.Data);
+  EdNumeroPedido.Text := Pedido.NumeroPedido.ToString;
+  EdCliente.Text      := Pedido.Cliente;
+
+  ListItPed := TObjectList<TItemPedido>.Create;
+  ListItPed := TItemPedidoFacade.GetInstancia.FindItensByIdPedido(Pedido.Id);
+
+  PopularCdsItem;
+end;
+
+procedure TCadastroPedidoForm.PopularCamposProduto(Produto: TProduto; Qtd: Integer = 0);
+begin
+  EdIDProduto.Text := IntToStr(Produto.Id);
+  EdProduto.Text   := Produto.Descricao;
+  EdVlrUni.Text    := FloatToStr(Produto.PrecoVenda);
+
+  if Qtd > 0 then
+  begin
+    EdQtde.Text     := IntToStr(Qtd);
+    EdVlrTotal.Text := FloatToStr( Qtd * Produto.PrecoVenda );
+  end;
+end;
+
+procedure TCadastroPedidoForm.PopularCdsItem;
+var
+  oItPed: TItemPedido;
+begin
+  for oItPed in ListItPed do
+  begin
+    cdsItem.Append;
+    cdsItem.Fields[0].AsInteger  := oItPed.Id;
+    cdsItem.Fields[1].AsInteger  := oItPed.IdProduto;
+    cdsItem.Fields[2].AsString   := TProdutoFacade.GetInstancia.GetDescricao(oItPed.IdProduto);
+    cdsItem.Fields[3].AsInteger  := oItPed.Qtd;
+    cdsItem.Fields[4].AsCurrency := oItPed.ValorItem;
+    cdsItem.Fields[5].AsCurrency := oItPed.ValorTotal;
+    AtualizarTotalPedido(cdsItem.Fields[5].AsCurrency);
+    cdsItem.Post;
+  end;
+end;
+
+function TCadastroPedidoForm.PopularItemPedido: TItemPedido;
+begin
+  Result            := TItemPedido.Create;
+  Result.Id         := cdsItem.Fields[0].AsInteger;
+  Result.IdProduto  := cdsItem.Fields[1].AsInteger;
+  Result.Qtd        := cdsItem.Fields[3].AsInteger;
+  Result.ValorItem  := cdsItem.Fields[4].AsCurrency;
+  Result.ValorTotal := cdsItem.Fields[5].AsCurrency;
+end;
+
+procedure TCadastroPedidoForm.ProximoButtonClick(Sender: TObject);
+begin
+  inherited;
+  cdsItem.Next;
+end;
+
+end.

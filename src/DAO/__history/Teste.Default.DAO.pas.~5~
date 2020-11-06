@@ -1,0 +1,14 @@
+unit Teste.Default.DAO;
+
+interface
+
+uses Teste.FactoryFB.DAO;
+
+type
+  TDefaultDAO = class(TFactoryFB)
+  private
+  end;
+
+implementation
+
+end.

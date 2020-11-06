@@ -1,0 +1,82 @@
+object CadastroPedidoForm: TCadastroPedidoForm
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu]
+  Caption = 'Cadastro de Pedido'
+  ClientHeight = 381
+  ClientWidth = 570
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object TopPanel: TPanel
+    Left = 0
+    Top = 0
+    Width = 570
+    Height = 201
+    Align = alTop
+    TabOrder = 0
+    object TopGroupBox: TGroupBox
+      AlignWithMargins = True
+      Left = 4
+      Top = 4
+      Width = 562
+      Height = 105
+      Align = alTop
+      TabOrder = 0
+      ExplicitLeft = 8
+      ExplicitTop = 0
+      object lblData: TLabel
+        Left = 139
+        Top = 18
+        Width = 23
+        Height = 13
+        Caption = 'Data'
+      end
+      object lblID: TLabel
+        Left = 8
+        Top = 18
+        Width = 33
+        Height = 13
+        Caption = 'C'#243'digo'
+      end
+      object EdData: TEdit
+        Left = 138
+        Top = 37
+        Width = 121
+        Height = 21
+        Color = cl3DLight
+        Enabled = False
+        TabOrder = 0
+      end
+      object EdID: TEdit
+        Left = 11
+        Top = 37
+        Width = 121
+        Height = 21
+        Alignment = taRightJustify
+        Color = cl3DLight
+        Enabled = False
+        TabOrder = 1
+      end
+    end
+  end
+  object ItensDBGrid: TDBGrid
+    Left = 0
+    Top = 201
+    Width = 570
+    Height = 180
+    Align = alClient
+    TabOrder = 1
+    TitleFont.Charset = DEFAULT_CHARSET
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -11
+    TitleFont.Name = 'Tahoma'
+    TitleFont.Style = []
+  end
+end

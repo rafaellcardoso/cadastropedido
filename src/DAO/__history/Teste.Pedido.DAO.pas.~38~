@@ -1,0 +1,263 @@
+unit Teste.Pedido.DAO;
+
+interface
+
+uses
+  System.SysUtils,
+  FireDAC.Comp.Client,
+  System.Generics.Collections,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, Data.DB,
+  FireDAC.Comp.DataSet,
+  Teste.Default.DAO,
+  Teste.Pedido.Entity,
+  Teste.ItemPedido.Entity;
+
+type
+  TPedidoDAO = class(TDefaultDAO)
+  private
+    function GetMaxIdPedido: Integer;
+    function PopularPedido(AQuery: TFDQuery): TPedido;
+
+    procedure InsertItem(Item: TItemPedido; IdPedido: Integer);
+    procedure DeleteItem(IdPedido: Integer);
+  public
+    procedure Insert(Pedido: TPedido);
+    procedure Update(Pedido: TPedido);
+    procedure Delete(Id: Integer);
+
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TPedido>;
+    function FindById(const Id: Integer): TPedido;
+  end;
+
+
+implementation
+
+uses
+  Teste.Pedido.DAO.SQL,
+  Teste.ItemPedido.DAO.SQL;
+
+{ TPedidoDAO }
+
+procedure TPedidoDAO.Delete(Id: Integer);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_DELETE_PEDIDO);
+    lQry.Params[0].AsInteger := Id;
+    try
+      lQry.ExecSQL;
+      //DeleteItem(Id);
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao deletar pedido. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+procedure TPedidoDAO.DeleteItem(IdPedido: Integer);
+var
+  Qry: TFDQuery;
+begin
+  Qry := TFDQuery.Create(nil);
+  Qry.Connection := GetConnection;
+
+  Qry.Close;
+  Qry.SQL.Clear;
+  Qry.SQL.Add(SQL_DELETE_ITPEDIDO);
+  Qry.Params[0].AsInteger := IdPedido;
+  try
+    Qry.ExecSQL;
+  finally
+    FreeAndNil(Qry);
+  end;
+end;
+
+function TPedidoDAO.FindAll(const ASql: String;
+  const AParam: Boolean): TObjectList<TPedido>;
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    Result := TObjectList<TPedido>.Create();
+    lQry.Connection := GetConnection;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_PEDIDO);
+    if (AParam) then
+      lQry.SQL.Add(ASql);
+    lQry.Open;
+    if not (lQry.IsEmpty) then
+    begin
+      lQry.First;
+      while not lQry.Eof do
+      begin
+          Result.Add(PopularPedido(lQry));
+        lQry.Next;
+      end;
+    end;
+  finally
+    lQry.Free;
+  end;
+end;
+
+function TPedidoDAO.FindById(const Id: Integer): TPedido;
+var
+  lQry: TFDQuery;
+begin
+  try
+    Result := nil;
+    lQry := GetQuery;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_PEDIDO);
+    lQry.SQL.Add('AND p.numero_pedido = :ID ');
+    lQry.Params[0].AsInteger := Id;
+    lQry.Open;
+    if not (lQry.IsEmpty) then
+      Result := PopularPedido(lQry);
+  finally
+    lQry.Free;
+  end;
+end;
+
+function TPedidoDAO.GetMaxIdPedido: Integer;
+var
+  lQry: TFDQuery;
+begin
+  Result := 0;
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_MAX_PEDIDO);
+    lQry.Open;
+    if lQry.Fields[0].AsInteger > 0 then
+      result := lQry.Fields[0].AsInteger;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+procedure TPedidoDAO.Insert(Pedido: TPedido);
+var
+  lQry: TFDQuery;
+  ItemPedido: TItemPedido;
+  IdPedido: Integer;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_INSERT_PEDIDO);
+    lQry.Params[0].AsDate    := Pedido.Data;
+    lQry.Params[1].AsInteger := Pedido.IdCliente;
+    lQry.Params[2].AsFloat  := Pedido.ValorTotal;
+    try
+      lQry.ExecSQL;
+
+      IdPedido := GetMaxIdPedido;
+      for ItemPedido in Pedido.ItemList do
+        InsertItem(ItemPedido, IdPedido);
+
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao cadastrar pedido. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+procedure TPedidoDAO.InsertItem(Item: TItemPedido; IdPedido: Integer);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_INSERT_ITEMPED);
+    lQry.Params[0].AsInteger := IdPedido;
+    lQry.Params[1].AsInteger := Item.IdProduto;
+    lQry.Params[2].AsInteger := Item.Qtd;
+    lQry.Params[3].AsFloat   := Item.ValorItem;
+    lQry.Params[4].AsFloat   := Item.ValorTotal;
+    try
+      lQry.ExecSQL;
+    except
+      on E: Exception do
+      begin
+        raise Exception.Create('Erro ao incluir itens pedido. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+function TPedidoDAO.PopularPedido(AQuery: TFDQuery): TPedido;
+begin
+  Result              := TPedido.Create;
+  Result.Id           := AQuery.Fields[0].AsInteger;
+  Result.Data         := AQuery.Fields[1].AsDateTime;
+  Result.NumeroPedido := AQuery.Fields[2].AsInteger;
+  Result.Cliente      := AQuery.Fields[3].AsString;
+end;
+
+procedure TPedidoDAO.Update(Pedido: TPedido);
+var
+  lQry: TFDQuery;
+begin
+  lQry := TFDQuery.Create(nil);
+  try
+    lQry.Connection := GetConnection;
+    StartTransaction;
+    lQry.Close;
+    lQry.SQL.Clear;
+    lQry.SQL.Add(SQL_UPDATE_PEDIDO);
+    lQry.Params[0].AsInteger := Pedido.NumeroPedido;
+    lQry.Params[1].AsString  := Pedido.Cliente;
+    lQry.Params[2].AsInteger := Pedido.Id;
+    try
+      lQry.ExecSQL;
+      ConfirmTransaction;
+    except
+      on E: Exception do
+      begin
+        CancelTransaction;
+        raise Exception.Create('Erro ao alterar pedido. '+
+                               sLineBreak + E.Message );
+      end;
+    end;
+  finally
+    FreeAndNil(lQry);
+  end;
+end;
+
+end.

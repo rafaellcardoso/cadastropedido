@@ -1,0 +1,14 @@
+unit Teste.Default.DAO;
+
+interface
+
+uses Teste.FactoryMYSQL.DAO, System.Generics.Collections, FireDAC.Comp.Client, Vcl.dialogs;
+
+type
+  TDefaultDAO = class(TFactoryMySQL)
+  private
+  end;
+
+implementation
+
+end.

@@ -1,0 +1,18 @@
+unit Teste.Produto.Controller;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.Produto.DAO,
+  Teste.Produto.Entity;
+
+type
+  TProdutoController = class(TDefaultController)
+
+  end;
+
+implementation
+
+end.

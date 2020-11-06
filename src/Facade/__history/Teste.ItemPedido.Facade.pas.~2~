@@ -1,0 +1,30 @@
+unit Teste.ItemPedido.Facade;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.ItemPedido.Entity,
+  Teste.ItemPedidoController;
+
+type
+  TPedidoFacade = class
+  private
+    FPedidoController: TItemPedidoController;
+
+    class var FInstancia: TPedidoFacade;
+  public
+    class function GetInstancia: TPedidoFacade;
+
+    procedure Insert(Produto: TItemPedido);
+    procedure Update(Produto: TItemPedido);
+    procedure Delete(Id: Integer);
+
+    function FindById(const AId: Integer): TItemPedido;
+    function FindAll(const ASql: String; const AParam: Boolean = False): TObjectList<TItemPedido>;
+  end;
+
+
+implementation
+
+end.

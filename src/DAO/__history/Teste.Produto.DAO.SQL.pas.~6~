@@ -1,0 +1,21 @@
+unit Teste.Produto.DAO.SQL;
+
+interface
+
+const
+  SQL_INSERT_PRODUTO =
+    'INSERT INTO item (descitem) '+
+    'VALUES (:descricao)';
+
+  SQL_UPDATE_PRODUTO =
+    'UPDATE ITEM SET descitem = :descitem WHERE IDITEM = :ID';
+
+  SQL_DELETE_PRODUTO = 'DELETE FROM ITEM WHERE IDITEM = :ID';
+
+  SQL_PRODUTO = 'SELECT iditem, descitem '+
+                'FROM item '+
+                'WHERE 1 = 1';
+
+implementation
+
+end.

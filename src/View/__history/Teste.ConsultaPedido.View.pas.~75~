@@ -1,0 +1,261 @@
+unit Teste.ConsultaPedido.View;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Data.DB, Datasnap.DBClient, Vcl.Grids,
+  Vcl.DBGrids, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, System.Generics.Collections,
+  Teste.Pedido.Entity, Teste.ItemPedido.Entity;
+
+type
+  TConsultaPedidoForm = class(TForm)
+    pnPesquisar: TPanel;
+    CBoxPesquisar: TComboBox;
+    ButtonPanel: TPanel;
+    btnUltimo: TSpeedButton;
+    btnProximo: TSpeedButton;
+    btnAnterior: TSpeedButton;
+    btnInicio: TSpeedButton;
+    Label2: TLabel;
+    DateIni: TDateTimePicker;
+    DateFim: TDateTimePicker;
+    Label3: TLabel;
+    Label1: TLabel;
+    cds: TClientDataSet;
+    cdsidpedidocab: TIntegerField;
+    cdsdtemissao: TDateField;
+    cdsnumero: TIntegerField;
+    cdscliente: TStringField;
+    ds: TDataSource;
+    GroupBox1: TGroupBox;
+    ItemGroupBox: TGroupBox;
+    DBGridItens: TDBGrid;
+    PedidoGroupBox: TGroupBox;
+    DBGrid: TDBGrid;
+    dsItens: TDataSource;
+    cdsItens: TClientDataSet;
+    cdsItensidpedidoitem: TIntegerField;
+    cdsItensidpedidocab: TIntegerField;
+    cdsItensiditem: TIntegerField;
+    cdsItensdesc_item: TStringField;
+    cdsItensquantidade: TIntegerField;
+    cdsItensvalorunit: TCurrencyField;
+    cdsItensvalortotal: TCurrencyField;
+    EdPesquisa: TEdit;
+    lblPesquisar: TLabel;
+    Button1: TButton;
+    procedure DBGridDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+    procedure CBoxPesquisarChange(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure btnProximoClick(Sender: TObject);
+    procedure btnAnteriorClick(Sender: TObject);
+    procedure btnInicioClick(Sender: TObject);
+    procedure btnUltimoClick(Sender: TObject);
+    procedure DBGridDblClick(Sender: TObject);
+    procedure dsDataChange(Sender: TObject; Field: TField);
+    procedure DBGridItensDrawColumnCell(Sender: TObject; const Rect: TRect;
+      DataCol: Integer; Column: TColumn; State: TGridDrawState);
+  private
+    { Private declarations }
+    ListPed: TObjectList<TPedido>;
+    ListItPed: TObjectList<TItemPedido>;
+
+    function MontarFiltro: string;
+
+    procedure AtualizaDescPesquisa;
+    procedure AtualizarRegistros;
+    procedure ListaPedidoPopulaCDS;
+    procedure ListaItemPedidoPopulaCDS;
+    procedure LimparCDS;
+    procedure LimparCDSItens;
+  public
+    { Public declarations }
+    ID: Integer;
+  end;
+
+var
+  ConsultaPedidoForm: TConsultaPedidoForm;
+
+implementation
+
+uses
+  Teste.Pedido.Facade, Teste.ItemPedido.Facade, Teste.Produto.Facade;
+
+{$R *.dfm}
+
+procedure TConsultaPedidoForm.AtualizaDescPesquisa;
+begin
+  lblPesquisar.Caption := 'Informe '+ CBoxPesquisar.Text;
+end;
+
+procedure TConsultaPedidoForm.AtualizarRegistros;
+var
+  sSQL: string;
+begin
+  sSQL    := MontarFiltro;
+  ListPed := TObjectList<TPedido>.Create();
+  ListPed := TPedidoFacade.GetInstancia.FindAll(sSQL, (Length(Trim(sSQL)) > 0));
+  ListaPedidoPopulaCDS;
+  ListPed.Free;
+end;
+
+procedure TConsultaPedidoForm.btnAnteriorClick(Sender: TObject);
+begin
+  cds.Prior;
+end;
+
+procedure TConsultaPedidoForm.btnInicioClick(Sender: TObject);
+begin
+  cds.First;
+end;
+
+procedure TConsultaPedidoForm.btnProximoClick(Sender: TObject);
+begin
+  cds.Next;
+end;
+
+procedure TConsultaPedidoForm.btnUltimoClick(Sender: TObject);
+begin
+  cds.Last;
+end;
+
+procedure TConsultaPedidoForm.Button1Click(Sender: TObject);
+begin
+  LimparCDS;
+  AtualizarRegistros;
+end;
+
+procedure TConsultaPedidoForm.CBoxPesquisarChange(Sender: TObject);
+begin
+  AtualizaDescPesquisa;
+end;
+
+procedure TConsultaPedidoForm.DBGridDblClick(Sender: TObject);
+begin
+  ID := ds.DataSet.Fields[0].AsInteger;
+  Close;
+end;
+
+procedure TConsultaPedidoForm.DBGridDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+  if odd(ds.DataSet.RecNo) then
+    DBGrid.Canvas.Brush.Color:= clGradientInactiveCaption
+  else
+    DBGrid.Canvas.Brush.Color:= clWindow;//clCream;
+
+  TDbGrid(Sender).Canvas.font.Color:= clBlack;
+  if gdSelected in State then
+  with (Sender as TDBGrid).Canvas do
+  begin
+    Brush.Color := clHotLight;//$004080FF;
+    FillRect(Rect);
+    Font.Color:= clWindow;
+    Font.Style := [fsbold]
+  end;
+  TDbGrid(Sender).DefaultDrawDataCell(Rect, TDbGrid(Sender).columns[datacol].field, State);
+end;
+
+procedure TConsultaPedidoForm.DBGridItensDrawColumnCell(Sender: TObject;
+  const Rect: TRect; DataCol: Integer; Column: TColumn; State: TGridDrawState);
+begin
+  if odd(dsItens.DataSet.RecNo) then
+    DBGridItens.Canvas.Brush.Color:= clGradientInactiveCaption
+  else
+    DBGridItens.Canvas.Brush.Color:= clWindow;//clCream;
+
+  TDbGrid(Sender).Canvas.font.Color:= clBlack;
+  if gdSelected in State then
+  with (Sender as TDBGrid).Canvas do
+  begin
+    Brush.Color := clHotLight;//$004080FF;
+    FillRect(Rect);
+    Font.Color:= clWindow;
+    Font.Style := [fsbold]
+  end;
+  TDbGrid(Sender).DefaultDrawDataCell(Rect, TDbGrid(Sender).columns[datacol].field, State);
+end;
+
+procedure TConsultaPedidoForm.dsDataChange(Sender: TObject; Field: TField);
+begin
+  LimparCdsItens;
+  ListaItemPedidoPopulaCDS;
+end;
+
+procedure TConsultaPedidoForm.FormActivate(Sender: TObject);
+begin
+  AtualizaDescPesquisa;
+  DateIni.DateTime := Now;
+  DateFim.DateTime := Now;
+end;
+
+procedure TConsultaPedidoForm.LimparCDS;
+begin
+  while not (cds.IsEmpty) do cds.Delete;
+  LimparCDSItens;
+end;
+
+procedure TConsultaPedidoForm.LimparCDSItens;
+begin
+  while not (cdsItens.IsEmpty) do cdsItens.Delete;
+end;
+
+procedure TConsultaPedidoForm.ListaItemPedidoPopulaCDS;
+var
+  ItemPedido: TItemPedido;
+begin
+
+  ListItPed := TObjectList<TItemPedido>.Create;
+  ListItPed := TItemPedidoFacade.GetInstancia.FindItensByIdPedido(cds.Fields[0].AsInteger);
+
+  cdsItens.Close;
+  cdsItens.Active := True;
+  for ItemPedido in ListItPed do
+  begin
+    cdsItens.Append;
+    cdsItens.Fields[0].AsInteger := ItemPedido.Id;
+    cdsItens.Fields[1].AsInteger := ItemPedido.IdPedido;
+    cdsItens.Fields[2].AsInteger := ItemPedido.IdProduto;
+    cdsItens.Fields[3].AsString  := TProdutoFacade.GetInstancia.GetDescricao(ItemPedido.IdProduto);
+    cdsItens.Fields[4].AsInteger := ItemPedido.Qtd;
+    cdsItens.Fields[5].AsFloat   := ItemPedido.ValorItem;
+    cdsItens.Fields[6].AsFloat   := ItemPedido.ValorTotal;
+    cdsItens.Post;
+  end;
+end;
+
+procedure TConsultaPedidoForm.ListaPedidoPopulaCDS;
+var
+  Pedido: TPedido;
+begin
+  cds.Close;
+  cds.Active := True;
+  for Pedido in ListPed do
+  begin
+    cds.Append;
+    cds.Fields[0].AsInteger  := Pedido.Id;
+    cds.Fields[1].AsDateTime := Pedido.Data;
+    cds.Fields[2].AsInteger  := Pedido.NumeroPedido;
+    cds.Fields[3].AsString   := Pedido.Cliente;
+    cds.Post;
+  end;
+end;
+
+function TConsultaPedidoForm.MontarFiltro: string;
+begin
+  Result := ' AND dtemissao BETWEEN  '+ QuotedStr(FormatDateTime('yyyy-MM-dd', DateIni.Date))+ ' AND  ' + QuotedStr(FormatDateTime('yyyy-MM-dd', DateFim.Date));
+
+  if Length(Trim(EdPesquisa.Text)) > 0 then
+  begin
+    case CBoxPesquisar.ItemIndex of
+      0: Result := Result + ' AND idpedidocab = ' + EdPesquisa.Text;
+      1: Result := Result + ' AND numero = ' + EdPesquisa.Text;
+      2: Result := Result + ' AND cliente like '+ QuotedStr('%'+ EdPesquisa.Text + '%');
+    end;
+  end;
+end;
+
+end.

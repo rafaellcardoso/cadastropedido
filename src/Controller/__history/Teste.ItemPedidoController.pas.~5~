@@ -1,0 +1,29 @@
+unit Teste.ItemPedidoController;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.Default.Controller,
+  Teste.ItemPedido.DAO,
+  Teste.ItemPedido.Entity;
+
+type
+  TItemPedidoController = class(TDefaultController)
+  private
+    FItemPedidoDAO: TItemPedidoDAO;
+  public
+    function FindItensByIdPedido(const IdPedido: Integer): TObjectList<TItemPedido>;
+  end;
+
+implementation
+
+{ TItemPedidoController }
+
+function TItemPedidoController.FindItensByIdPedido(
+  const IdPedido: Integer): TObjectList<TItemPedido>;
+begin
+
+end;
+
+end.

@@ -1,0 +1,41 @@
+unit Teste.ItemPedido.Facade;
+
+interface
+
+uses
+  System.Generics.Collections,
+  Teste.ItemPedido.Entity,
+  Teste.ItemPedido.Controller;
+
+type
+  TItemPedidoFacade = class
+  private
+    FPedidoController: TItemPedidoController;
+
+    class var FInstancia: TPedidoFacade;
+  public
+    class function GetInstancia: TPedidoFacade;
+
+    function FindItensByIdPedido(const IdPedido: Integer): TObjectList<TItemPedido>;
+  end;
+
+
+implementation
+
+{ TPedidoFacade }
+
+function TItemPedidoFacade.FindItensByIdPedido(
+  const IdPedido: Integer): TObjectList<TItemPedido>;
+begin
+
+end;
+
+class function TPedidoFacade.GetInstancia: TPedidoFacade;
+begin
+  if not( Assigned(FInstancia) ) then
+    FInstancia := TItemPedidoFacade.Create;
+
+  Result := FInstancia;
+end;
+
+end.
